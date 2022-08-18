@@ -9,6 +9,7 @@ exports.writeToDB = functions.runWith({secrets:['SQL_USER','SQL_SERVER','SQL_PAS
  
 // Writes the user info to the main database
 sql.on('error', err => {
+  sql.pool.close()
     return err
 })
 sql.connect(`Server=${process.env.SQL_SERVER},${port};Database=montelo;User Id=${process.env.SQL_USER};Password=${process.env.SQL_PASSWORD};Encrypt=false`).then(pool => {
@@ -18,8 +19,11 @@ sql.connect(`Server=${process.env.SQL_SERVER},${port};Database=montelo;User Id=$
         .query(`INSERT into Users VALUES ('${user.uid}','${user.email}','${user.displayName}','Doe','${user.phoneNumber}');`)
 }).then(result => {
     sendEmail('otto_281@hotmail.com','Wohoo! Montelo new user signup!',`User details: \n email: ${user.email} \n name: ${user.displayName} \n uid: ${user.uid}`)
+    sql.pool.close()
     return {status:200,message:'Added User',res: result}
+
 }).catch(err => {
+  sql.pool.close()
    return err
 });
 })
